@@ -1,4 +1,7 @@
+global:
+  scrape_interval: 15s
+
 scrape_configs:
-  - job_name: 'pushgateway'
+  - job_name: 'alerts'
     static_configs:
-      - targets: ['localhost:9091']
+      - targets: ['alerts_go:8082']

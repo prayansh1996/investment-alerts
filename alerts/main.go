@@ -5,6 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Define the structs to match the JSON response
@@ -27,11 +32,22 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-func main() {
-	// API endpoint
+// Define a gauge outside of the main function to make it accessible in the handler
+var navGauge = prometheus.NewGauge(
+	prometheus.GaugeOpts{
+		Name: "mutual_fund_nav",
+		Help: "NAV of the mutual fund.",
+	},
+)
+
+func init() {
+	// Register the gauge with Prometheus
+	prometheus.MustRegister(navGauge)
+}
+
+func fetchNav() {
 	url := "https://api.mfapi.in/mf/119063/latest"
 
-	// Make the GET request
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Error making the request: %s\n", err)
@@ -39,14 +55,12 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	// Read the body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading the response body: %s\n", err)
 		return
 	}
 
-	// Unmarshal the JSON response into the ApiResponse struct
 	var apiResponse ApiResponse
 	err = json.Unmarshal(body, &apiResponse)
 	if err != nil {
@@ -54,13 +68,28 @@ func main() {
 		return
 	}
 
-	// Print the extracted data
-	fmt.Printf("Fund House: %s\n", apiResponse.Meta.FundHouse)
-	fmt.Printf("Scheme Type: %s\n", apiResponse.Meta.SchemeType)
-	fmt.Printf("Scheme Category: %s\n", apiResponse.Meta.SchemeCategory)
-	fmt.Printf("Scheme Code: %d\n", apiResponse.Meta.SchemeCode)
-	fmt.Printf("Scheme Name: %s\n", apiResponse.Meta.SchemeName)
-	for _, data := range apiResponse.Data {
-		fmt.Printf("Date: %s, NAV: %s\n", data.Date, data.Nav)
+	// Update the gauge with the fetched NAV
+	if len(apiResponse.Data) > 0 {
+		nav, err := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
+		if err == nil {
+			navGauge.Set(nav)
+		}
 	}
+}
+
+func tickNav() {
+	for i := 0; i <= 100; i++ {
+		fetchNav()
+		time.Sleep(2 * time.Second)
+		fmt.Println("Nav fetched")
+	}
+}
+
+func main() {
+	// Fetch NAV periodically or on demand
+	go tickNav() // For simplicity, fetching once; consider using a ticker for periodic updates
+
+	// Expose the registered metrics via HTTP
+	http.Handle("/metrics", promhttp.Handler())
+	http.ListenAndServe(":8082", nil) // Use port 8082 for Prometheus metrics
 }
