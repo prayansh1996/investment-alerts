@@ -4,7 +4,7 @@ FROM prom/prometheus
 USER root
 
 # Copy your Prometheus configuration file into the image
-COPY ./prometheus.yaml /etc/prometheus/prometheus.yaml
+COPY ./prometheus.yml /etc/prometheus/prometheus.yml
 
 # Set the working directory inside the container
 WORKDIR /prometheus
