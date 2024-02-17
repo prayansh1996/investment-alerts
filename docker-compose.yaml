@@ -16,7 +16,7 @@ services:
     ports:
       - "9090:9090"  # Expose Prometheus on port 9090 on the host
     volumes:
-      - ./prometheus/prometheus-data:/prometheus  # Persistent volume for Prometheus data
+      - ./prometheus/data:/prometheus  # Persistent volume for Prometheus data
     networks:
       - alerts_network
 
