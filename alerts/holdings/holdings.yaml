@@ -1,0 +1,12 @@
+equity:
+  mutual_funds:
+    - name: HDFC Nifty 50 Growth Index
+      category: Index Fund
+      units_held: 150
+      api: https://api.mfapi.in/mf/119063/latest
+      refresh_time: 6h
+    - name: UTI Nifty 50 Growth Index
+      category: Index Fund
+      units_held: 200
+      api: https://api.mfapi.in/mf/100822
+      refresh_time: 6h
