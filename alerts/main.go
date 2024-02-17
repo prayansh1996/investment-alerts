@@ -3,13 +3,16 @@ package main
 import (
 	"net/http"
 
-	"github.com/prayansh1996/investment-alerts/fetchers"
+	"github.com/prayansh1996/investment-alerts/holdings"
+	"github.com/prayansh1996/investment-alerts/metrics"
+	"github.com/prayansh1996/investment-alerts/tracker"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
-	// Fetch NAV periodically or on demand
-	go fetchers.Start() // For simplicity, fetching once; consider using a ticker for periodic updates
+	metrics.InitializeMetrics()
+	holdings.InitializeHoldings()
+	tracker.Start()
 
 	// Expose the registered metrics via HTTP
 	http.Handle("/metrics", promhttp.Handler())

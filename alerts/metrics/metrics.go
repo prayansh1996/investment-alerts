@@ -5,6 +5,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+type Metric struct {
+	Units        float64
+	PricePerUnit float64
+	Name         string
+	Category     string
+}
+
+var PublishChannel = make(chan Metric)
+
 // Define a gauge outside of the main function to make it accessible in the handler
 var unitsGauge = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
@@ -23,13 +32,22 @@ var pricePerUnitGauge = prometheus.NewGaugeVec(
 	[]string{cons.Name, cons.Category},
 )
 
-func init() {
+func InitializeMetrics() {
 	// Register the gauge with Prometheus
 	prometheus.MustRegister(unitsGauge)
 	prometheus.MustRegister(pricePerUnitGauge)
+
+	go initializePublisher()
 }
 
-func Publish(units int, pricePerUnit int, name string, category string) {
-	unitsGauge.With(prometheus.Labels{cons.Name: name, cons.Category: category}).Add(float64(units))
-	pricePerUnitGauge.With(prometheus.Labels{cons.Name: name, cons.Category: category}).Add(float64(pricePerUnit))
+func initializePublisher() {
+	for {
+		metric := <-PublishChannel
+		publish(metric)
+	}
+}
+
+func publish(metric Metric) {
+	unitsGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Add(metric.Units)
+	pricePerUnitGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Add(metric.PricePerUnit)
 }

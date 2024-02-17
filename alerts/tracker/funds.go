@@ -1,4 +1,4 @@
-package fetchers
+package tracker
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
@@ -31,42 +32,56 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-func fetchNav() {
-	url := "https://api.mfapi.in/mf/119063/latest"
-
-	resp, err := http.Get(url)
+func getFundMetrics(fund holdings.Fund) (metrics.Metric, error) {
+	resp, err := http.Get(fund.Api)
 	if err != nil {
 		fmt.Printf("Error making the request: %s\n", err)
-		return
+		return metrics.Metric{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading the response body: %s\n", err)
-		return
+		return metrics.Metric{}, err
 	}
 
 	var apiResponse ApiResponse
 	err = json.Unmarshal(body, &apiResponse)
 	if err != nil {
 		fmt.Printf("Error unmarshalling the response: %s\n", err)
-		return
+		return metrics.Metric{}, err
 	}
 
 	// Update the gauge with the fetched NAV
-	if len(apiResponse.Data) > 0 {
-		nav, err := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
-		if err == nil {
-			metrics.Publish(int(nav), 1, "HDFC", "Index Fund")
-		}
+	if len(apiResponse.Data) == 0 {
+		fmt.Printf("No data returned in response: %v\n", apiResponse)
+		return metrics.Metric{}, err
 	}
+
+	nav, _ := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
+	return metrics.Metric{
+		Units:        fund.UnitsHeld,
+		PricePerUnit: nav,
+		Name:         fund.Name,
+		Category:     fund.Category,
+	}, nil
 }
 
-func Start() {
-	for i := 0; i <= 100; i++ {
-		fetchNav()
-		time.Sleep(2 * time.Second)
-		fmt.Println("Nav fetched")
+func getFundTracker(fund holdings.Fund) func(chan<- metrics.Metric) {
+	duration, err := time.ParseDuration(fund.RefreshTime)
+	if err != nil {
+		fmt.Printf("Cannot parse duration")
+	}
+
+	return func(publish chan<- metrics.Metric) {
+		ticker := time.NewTicker(duration)
+		for {
+			t := <-ticker.C
+			fmt.Printf("Fetching %s %s at %s", fund.Name, fund.Category, t)
+
+			fundMetrics, _ := getFundMetrics(fund)
+			publish <- fundMetrics
+		}
 	}
 }

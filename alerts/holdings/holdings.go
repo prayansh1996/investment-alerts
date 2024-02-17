@@ -2,8 +2,8 @@ package holdings
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -18,11 +18,11 @@ type Equity struct {
 }
 
 type Fund struct {
-	Name        string `yaml:"name"`
-	Category    string `yaml:"category"`
-	UnitsHeld   int    `yaml:"units_held"`
-	Api         string `yaml:"api"`
-	RefreshTime string `yaml:"refresh_time"`
+	Name        string  `yaml:"name"`
+	Category    string  `yaml:"category"`
+	UnitsHeld   float64 `yaml:"units_held"`
+	Api         string  `yaml:"api"`
+	RefreshTime string  `yaml:"refresh_time"`
 }
 
 type Stock struct {
@@ -35,10 +35,10 @@ type Stock struct {
 
 var holdings Holdings
 
-func init() {
+func InitHoldings() {
 	// Register the gauge with Prometheus
 	// Assuming holdings.yaml is in the current directory
-	yamlFile, err := ioutil.ReadFile("holdings.yaml")
+	yamlFile, err := os.ReadFile("holdings.yaml")
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s\n", err)
 	}
@@ -51,6 +51,6 @@ func init() {
 	fmt.Printf("Parsed Holdings: %+v\n", holdings)
 }
 
-func GetMutualFunds() []Fund {
-	return holdings.Equity.MutualFunds
+func GetHoldings() Holdings {
+	return holdings
 }
