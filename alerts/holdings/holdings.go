@@ -35,7 +35,7 @@ type Stock struct {
 
 var holdings Holdings
 
-func InitHoldings() {
+func InitializeHoldings() {
 	// Register the gauge with Prometheus
 	// Assuming holdings.yaml is in the current directory
 	yamlFile, err := os.ReadFile("holdings.yaml")
