@@ -20,5 +20,18 @@ services:
     networks:
       - alerts_network
 
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    user: root
+    depends_on:
+      - prometheus
+    networks:
+      - alerts_network
+
 networks:
   alerts_network:
