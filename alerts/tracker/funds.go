@@ -32,6 +32,24 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
+func getFundTracker(fund holdings.Fund) func(chan<- metrics.Metric) {
+	duration, err := time.ParseDuration(fund.RefreshTime)
+	if err != nil {
+		fmt.Printf("Cannot parse duration")
+	}
+
+	return func(publish chan<- metrics.Metric) {
+		ticker := time.NewTicker(duration)
+		for {
+			t := <-ticker.C
+			fmt.Printf("\nFetching %s %s at %s", fund.Name, fund.Category, t)
+
+			fundMetrics, _ := getFundMetrics(fund)
+			publish <- fundMetrics
+		}
+	}
+}
+
 func getFundMetrics(fund holdings.Fund) (metrics.Metric, error) {
 	resp, err := http.Get(fund.Api)
 	if err != nil {
@@ -66,22 +84,4 @@ func getFundMetrics(fund holdings.Fund) (metrics.Metric, error) {
 		Name:         fund.Name,
 		Category:     fund.Category,
 	}, nil
-}
-
-func getFundTracker(fund holdings.Fund) func(chan<- metrics.Metric) {
-	duration, err := time.ParseDuration(fund.RefreshTime)
-	if err != nil {
-		fmt.Printf("Cannot parse duration")
-	}
-
-	return func(publish chan<- metrics.Metric) {
-		ticker := time.NewTicker(duration)
-		for {
-			t := <-ticker.C
-			fmt.Printf("Fetching %s %s at %s", fund.Name, fund.Category, t)
-
-			fundMetrics, _ := getFundMetrics(fund)
-			publish <- fundMetrics
-		}
-	}
 }

@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"fmt"
+
 	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -48,6 +50,8 @@ func initializePublisher() {
 }
 
 func publish(metric Metric) {
-	unitsGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Add(metric.Units)
-	pricePerUnitGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Add(metric.PricePerUnit)
+	fmt.Printf("\nFlushing Metric: %v", metric)
+
+	unitsGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Set(metric.Units)
+	pricePerUnitGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Set(metric.PricePerUnit)
 }
