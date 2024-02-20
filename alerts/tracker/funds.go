@@ -1,7 +1,8 @@
 package tracker
 
 import (
-	"encoding/json"
+	"bytes"
+	"encoding/csv"
 	"fmt"
 	"io"
 	"net/http"
@@ -64,20 +65,26 @@ func getFundMetrics(fund holdings.Fund) (metrics.Metric, error) {
 		return metrics.Metric{}, err
 	}
 
-	var apiResponse ApiResponse
-	err = json.Unmarshal(body, &apiResponse)
+	r := csv.NewReader(bytes.NewReader(body))
 	if err != nil {
-		fmt.Printf("Error unmarshalling the response: %s\n", err)
+		fmt.Printf("Error reading csv: %s\n", err)
 		return metrics.Metric{}, err
 	}
 
 	// Update the gauge with the fetched NAV
-	if len(apiResponse.Data) == 0 {
-		fmt.Printf("No data returned in response: %v\n", apiResponse)
+	records, err := r.ReadAll()
+	if err != nil {
+		fmt.Printf("Unable to read records from csv: %s\n", err)
 		return metrics.Metric{}, err
 	}
 
-	nav, _ := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
+	nav := 0.0
+	for _, record := range records {
+		if record[0] == fund.Symbol {
+			nav, _ = strconv.ParseFloat(record[14], 64)
+		}
+	}
+
 	return metrics.Metric{
 		Units:        fund.UnitsHeld,
 		PricePerUnit: nav,

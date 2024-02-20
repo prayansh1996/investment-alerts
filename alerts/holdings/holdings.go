@@ -18,11 +18,13 @@ type Equity struct {
 }
 
 type Fund struct {
-	Name        string  `yaml:"name"`
-	Category    string  `yaml:"category"`
-	UnitsHeld   float64 `yaml:"units_held"`
-	Api         string  `yaml:"api"`
-	RefreshTime string  `yaml:"refresh_time"`
+	Name          string  `yaml:"name"`
+	Category      string  `yaml:"category"`
+	UnitsHeld     float64 `yaml:"units_held"`
+	Api           string  `yaml:"api"`
+	Symbol        string  `yaml:"symbol"`
+	RefreshTime   string  `yaml:"refresh_time"`
+	CacheDuration string  `yaml:"cache_duration"`
 }
 
 type Stock struct {
@@ -30,6 +32,7 @@ type Stock struct {
 	Ticker      string `yaml:"ticker"`
 	UnitsHeld   int    `yaml:"units_held"`
 	Api         string `yaml:"api"`
+	Id          string `yaml:"id"`
 	RefreshTime string `yaml:"refresh_time"`
 }
 
