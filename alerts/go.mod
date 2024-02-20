@@ -3,6 +3,7 @@ module github.com/prayansh1996/investment-alerts
 go 1.20
 
 require (
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.18.0
 	gopkg.in/yaml.v2 v2.4.0
 )

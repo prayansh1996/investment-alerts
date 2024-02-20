@@ -50,6 +50,10 @@ func initializePublisher() {
 }
 
 func publish(metric Metric) {
+	if metric.Name == "" {
+		fmt.Print("Empty metric received")
+		return
+	}
 	fmt.Printf("\nFlushing Metric: %v", metric)
 
 	unitsGauge.With(prometheus.Labels{cons.Name: metric.Name, cons.Category: metric.Category}).Set(metric.Units)
