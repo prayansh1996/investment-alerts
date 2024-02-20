@@ -14,6 +14,8 @@ import (
 
 type DomainFetcherMap map[string]func(holdings.Fund, []byte) (metrics.Metric, error)
 
+const CACHE_DURATION = 5 * time.Minute
+
 type CachedHttpClient struct {
 	domainFetcherMap DomainFetcherMap
 	cache            *cache.Cache
@@ -25,7 +27,7 @@ func NewCachedHttpClient() CachedHttpClient {
 		"api.mfapi.in":   mfApiFetcher,
 		"api.kite.trade": zerodhaMfFetcher,
 	}
-	c.cache = cache.New(5*time.Minute, 10*time.Minute)
+	c.cache = cache.New(CACHE_DURATION, 2*CACHE_DURATION)
 	return c
 }
 
@@ -38,6 +40,7 @@ func (c *CachedHttpClient) Fetch(fund holdings.Fund) (metrics.Metric, error) {
 		if err != nil {
 			fmt.Printf("\nError reading response body for %s", fund.Api)
 		}
+		c.cache.Set(fund.Api, body, CACHE_DURATION)
 	}
 
 	url, err := url.Parse(fund.Api)
