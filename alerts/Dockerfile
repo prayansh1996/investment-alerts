@@ -1,5 +1,5 @@
 # Start from the official Go image to build your application
-FROM golang:1.18 as builder
+FROM golang:1.18 as app
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -13,6 +13,8 @@ RUN go mod download
 # Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o alerts .
 
+FROM prom/prometheus as prometheus
+
 # Start a new stage from scratch
 FROM alpine:latest  
 
@@ -21,7 +23,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/alerts .
+COPY --from=app /app/alerts .
+COPY --from=prometheus /bin/promtool .
 COPY ./config/holdings.yaml .
 
 # Expose port 9090 to the outside world
