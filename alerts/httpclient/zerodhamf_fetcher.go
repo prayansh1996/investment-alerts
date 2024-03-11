@@ -3,6 +3,7 @@ package httpclient
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -22,6 +23,9 @@ func zerodhaMfFetcher(fund holdings.Fund, body []byte) (metrics.Metric, error) {
 		if record[0] == fund.Symbol {
 			nav, _ = strconv.ParseFloat(record[14], 64)
 		}
+	}
+	if nav == 0.0 {
+		return metrics.Metric{}, errors.New("nav price is 0 for " + fund.Name)
 	}
 
 	return metrics.Metric{

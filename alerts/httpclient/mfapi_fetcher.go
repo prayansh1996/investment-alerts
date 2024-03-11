@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -44,6 +45,10 @@ func mfApiFetcher(fund holdings.Fund, body []byte) (metrics.Metric, error) {
 	}
 
 	nav, _ := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
+	if nav == 0.0 {
+		return metrics.Metric{}, errors.New("nav price is 0 for " + fund.Name)
+	}
+
 	return metrics.Metric{
 		Units:        fund.UnitsHeld,
 		PricePerUnit: nav,
