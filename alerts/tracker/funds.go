@@ -31,7 +31,12 @@ func (f *FundTracker) getFundTracker(fund holdings.Fund) func(chan<- metrics.Met
 			t := <-ticker.C
 			fmt.Printf("\nFetching %s %s at %s", fund.Name, fund.Category, t)
 
-			fundMetrics, _ := f.cachedHttpClient.Fetch(fund)
+			fundMetrics, err := f.cachedHttpClient.Fetch(fund)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
 			publish <- fundMetrics
 		}
 	}
