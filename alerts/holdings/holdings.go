@@ -13,8 +13,8 @@ type Holdings struct {
 }
 
 type Equity struct {
-	MutualFunds []Fund  `yaml:"mutual_funds"`
-	Stocks      []Stock `yaml:"stocks"`
+	MutualFunds []Fund `yaml:"mutual_funds"`
+	Rsu         []Fund `yaml:"rsu"`
 }
 
 type Fund struct {
@@ -25,15 +25,6 @@ type Fund struct {
 	Symbol        string  `yaml:"symbol"`
 	RefreshTime   string  `yaml:"refresh_time"`
 	CacheDuration string  `yaml:"cache_duration"`
-}
-
-type Stock struct {
-	Name        string `yaml:"name"`
-	Ticker      string `yaml:"ticker"`
-	UnitsHeld   int    `yaml:"units_held"`
-	Api         string `yaml:"api"`
-	Id          string `yaml:"id"`
-	RefreshTime string `yaml:"refresh_time"`
 }
 
 var holdings Holdings
