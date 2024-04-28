@@ -27,8 +27,10 @@ func (f *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<-
 
 	return func(publish chan<- metrics.Metric) {
 		ticker := time.NewTicker(duration)
-		for {
-			t := <-ticker.C
+		defer ticker.Stop()
+
+		// Hack to make the first tick immediate
+		for t := time.Now(); true; t = <-ticker.C {
 			fmt.Printf("\nFetching %s %s at %s", holding.Name, holding.Category, t)
 
 			holdingMetrics, err := f.cachedFetcher.Fetch(holding)
