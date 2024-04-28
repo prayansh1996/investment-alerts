@@ -13,8 +13,9 @@ import (
 
 func GetUsdToInrConversionRate() float64 {
 	url := readCurrencyConversionApiUrl()
-	resp, _ := getHttpResponse(url)
+	fmt.Println("Url for currency conversion: " + url)
 
+	resp, _ := getHttpResponse(url)
 	var currencyResponse CurrencyResponse
 	err := json.Unmarshal([]byte(resp), &currencyResponse)
 	if err != nil {
@@ -55,7 +56,7 @@ type CurrencyConversion struct {
 }
 
 func readCurrencyConversionApiUrl() string {
-	yamlFile, err := os.ReadFile("config/currency_conversion.yaml")
+	yamlFile, err := os.ReadFile("currency_conversion.yaml")
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s\n", err)
 	}
