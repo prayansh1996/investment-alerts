@@ -10,13 +10,11 @@ import (
 )
 
 type HoldingTracker struct {
-	cachedFetcher fetcher.CachedFetcher
+	fetcher fetcher.HoldingFetcher
 }
 
 func NewHoldingTracker() HoldingTracker {
-	f := HoldingTracker{}
-	f.cachedFetcher = fetcher.NewCachedFetcher()
-	return f
+	return HoldingTracker{}
 }
 
 func (f *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<- metrics.Metric) {
@@ -33,7 +31,7 @@ func (f *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<-
 		for t := time.Now(); true; t = <-ticker.C {
 			fmt.Printf("\nFetching %s %s at %s", holding.Name, holding.Category, t)
 
-			holdingMetrics, err := f.cachedFetcher.Fetch(holding)
+			holdingMetrics, err := f.fetcher.Fetch(holding)
 			if err != nil {
 				fmt.Println(err)
 				continue

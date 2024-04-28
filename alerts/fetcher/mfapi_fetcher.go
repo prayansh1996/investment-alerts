@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"strconv"
 
+	"github.com/patrickmn/go-cache"
+	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
@@ -30,7 +34,46 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-func mfApiFetcher(fund holdings.Holding, body []byte) (metrics.Metric, error) {
+type MfApiFetcher struct {
+	cache *cache.Cache
+}
+
+func NewMfApiFetcher() HoldingFetcher {
+	return &MfApiFetcher{
+		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+	}
+}
+
+func (f *MfApiFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+	var err error
+
+	body, ok := f.cache.Get(holding.Api)
+	if !ok {
+		body, err = f.getHttpResponse(holding.Api)
+		if err != nil {
+			fmt.Printf("\nError reading response body for %s", holding.Api)
+		}
+		f.cache.Set(holding.Api, body, cons.HOLDING_API_CACHE_DURATION)
+	}
+
+	return f.convertResponseToMetric(holding, body.([]byte))
+}
+
+func (f *MfApiFetcher) getHttpResponse(url string) ([]byte, error) {
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("Error making the request: %s\n", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
+}
+
+func (f *MfApiFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.Metric, error) {
 	var apiResponse MfApiResponse
 	err := json.Unmarshal(body, &apiResponse)
 	if err != nil {
