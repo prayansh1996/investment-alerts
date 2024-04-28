@@ -10,9 +10,15 @@ type Tracker interface {
 }
 
 func Start() {
-	funds := holdings.GetHoldings().Equity.MutualFunds
-	fundTracker := NewFundTracker()
+	fundTracker := NewHoldingTracker()
+
+	funds := holdings.GetMutualFundHoldings()
 	for _, fund := range funds {
-		go fundTracker.getFundTracker(fund)(metrics.PublishChannel)
+		go fundTracker.getHoldingTracker(fund)(metrics.PublishChannel)
+	}
+
+	rsus := holdings.GetRSUHoldings()
+	for _, rsu := range rsus {
+		go fundTracker.getHoldingTracker(rsu)(metrics.PublishChannel)
 	}
 }

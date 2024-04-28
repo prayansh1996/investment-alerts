@@ -1,4 +1,4 @@
-package httpclient
+package fetcher
 
 import (
 	"fmt"
@@ -12,44 +12,45 @@ import (
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-type DomainFetcherMap map[string]func(holdings.Fund, []byte) (metrics.Metric, error)
+type DomainFetcherMap map[string]func(holdings.Holding, []byte) (metrics.Metric, error)
 
 const CACHE_DURATION = 5 * time.Minute
 
-type CachedHttpClient struct {
+type CachedFetcher struct {
 	domainFetcherMap DomainFetcherMap
 	cache            *cache.Cache
 }
 
-func NewCachedHttpClient() CachedHttpClient {
-	c := CachedHttpClient{}
+func NewCachedFetcher() CachedFetcher {
+	c := CachedFetcher{}
 	c.domainFetcherMap = DomainFetcherMap{
-		"api.mfapi.in":   mfApiFetcher,
-		"api.kite.trade": zerodhaMfFetcher,
+		"api.mfapi.in":       mfApiFetcher,
+		"api.kite.trade":     zerodhaKiteFetcher,
+		"api.api-ninjas.com": apiNinjasFetcher,
 	}
 	c.cache = cache.New(CACHE_DURATION, 2*CACHE_DURATION)
 	return c
 }
 
-func (c *CachedHttpClient) Fetch(fund holdings.Fund) (metrics.Metric, error) {
+func (c *CachedFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
 	var err error
 
-	body, ok := c.cache.Get(fund.Api)
+	body, ok := c.cache.Get(holding.Api)
 	if !ok {
-		body, err = getHttpResponseAsBytes(fund.Api)
+		body, err = getHttpResponseAsBytes(holding.Api)
 		if err != nil {
-			fmt.Printf("\nError reading response body for %s", fund.Api)
+			fmt.Printf("\nError reading response body for %s", holding.Api)
 		}
-		c.cache.Set(fund.Api, body, CACHE_DURATION)
+		c.cache.Set(holding.Api, body, CACHE_DURATION)
 	}
 
-	url, err := url.Parse(fund.Api)
+	url, err := url.Parse(holding.Api)
 	if err != nil {
 		fmt.Println("Error parsing url", err)
 	}
 
 	fetcher := c.domainFetcherMap[url.Hostname()]
-	return fetcher(fund, body.([]byte))
+	return fetcher(holding, body.([]byte))
 }
 
 func getHttpResponseAsBytes(api string) ([]byte, error) {

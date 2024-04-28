@@ -1,4 +1,4 @@
-package httpclient
+package fetcher
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 )
 
 // Define the structs to match the JSON response
-type ApiResponse struct {
+type MfApiResponse struct {
 	Meta   MetaData  `json:"meta"`
 	Data   []NavData `json:"data"`
 	Status string    `json:"status"`
@@ -30,8 +30,8 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-func mfApiFetcher(fund holdings.Fund, body []byte) (metrics.Metric, error) {
-	var apiResponse ApiResponse
+func mfApiFetcher(fund holdings.Holding, body []byte) (metrics.Metric, error) {
+	var apiResponse MfApiResponse
 	err := json.Unmarshal(body, &apiResponse)
 	if err != nil {
 		fmt.Printf("Error unmarshalling the response: %s\n", err)

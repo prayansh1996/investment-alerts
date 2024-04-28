@@ -1,4 +1,4 @@
-package httpclient
+package fetcher
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-func zerodhaMfFetcher(fund holdings.Fund, body []byte) (metrics.Metric, error) {
+func zerodhaKiteFetcher(fund holdings.Holding, body []byte) (metrics.Metric, error) {
 	records, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
 	if err != nil {
 		fmt.Printf("Unable to read records from csv: %s\n", err)

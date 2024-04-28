@@ -11,7 +11,7 @@ import (
 
 func main() {
 	metrics.InitializeMetrics()
-	holdings.InitializeMutalFunds()
+	holdings.InitializeHoldings()
 	tracker.Start()
 
 	// Expose the registered metrics via HTTP

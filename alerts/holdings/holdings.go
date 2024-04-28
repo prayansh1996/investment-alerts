@@ -13,11 +13,11 @@ type Holdings struct {
 }
 
 type Equity struct {
-	MutualFunds []Fund `yaml:"mutual_funds"`
-	Rsu         []Fund `yaml:"rsu"`
+	MutualFunds []Holding `yaml:"mutual_funds"`
+	Rsu         []Holding `yaml:"rsu"`
 }
 
-type Fund struct {
+type Holding struct {
 	Name          string  `yaml:"name"`
 	Category      string  `yaml:"category"`
 	UnitsHeld     float64 `yaml:"units_held"`
@@ -41,8 +41,4 @@ func InitializeHoldings() {
 	}
 
 	fmt.Printf("Parsed Holdings: %+v\n", holdings)
-}
-
-func GetHoldings() Holdings {
-	return holdings
 }
