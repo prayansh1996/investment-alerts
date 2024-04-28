@@ -30,7 +30,7 @@ type Holding struct {
 var holdings Holdings
 
 func InitializeHoldings() {
-	yamlFile, err := os.ReadFile("holdings.yaml")
+	yamlFile, err := os.ReadFile("config/holdings.yaml")
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s\n", err)
 	}

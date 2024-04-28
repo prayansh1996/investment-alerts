@@ -14,10 +14,12 @@ type HoldingTracker struct {
 }
 
 func NewHoldingTracker() HoldingTracker {
-	return HoldingTracker{}
+	tracker := HoldingTracker{}
+	tracker.fetcher = fetcher.NewHoldingFetcher()
+	return tracker
 }
 
-func (f *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<- metrics.Metric) {
+func (tracker *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<- metrics.Metric) {
 	duration, err := time.ParseDuration(holding.RefreshTime)
 	if err != nil {
 		fmt.Printf("Cannot parse duration")
@@ -31,7 +33,7 @@ func (f *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<-
 		for t := time.Now(); true; t = <-ticker.C {
 			fmt.Printf("\nFetching %s %s at %s", holding.Name, holding.Category, t)
 
-			holdingMetrics, err := f.fetcher.Fetch(holding)
+			holdingMetrics, err := tracker.fetcher.Fetch(holding)
 			if err != nil {
 				fmt.Println(err)
 				continue

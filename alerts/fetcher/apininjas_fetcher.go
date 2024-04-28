@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/prayansh1996/investment-alerts/currency"
 	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
@@ -49,7 +50,7 @@ func (f *ApiNinjasFetcher) convertResponseToMetric(rsu holdings.Holding, body []
 		return metrics.Metric{}, err
 	}
 
-	nav := apiResponse.Price * 83.40
+	nav := apiResponse.Price * currency.GetUsdToInrConversionRate()
 
 	return metrics.Metric{
 		Units:        rsu.UnitsHeld,
