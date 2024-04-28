@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/prayansh1996/investment-alerts/backfill"
 	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 	"github.com/prayansh1996/investment-alerts/tracker"
@@ -10,6 +11,8 @@ import (
 )
 
 func main() {
+	backfill.NewMfBackfill("a").BackfillPrices()
+
 	metrics.InitializeMetrics()
 	holdings.InitializeHoldings()
 	tracker.Start()
