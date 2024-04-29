@@ -22,6 +22,10 @@ type HoldingFetchOrchestrator struct {
 }
 
 func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+	if holding.StaticPricePerUnit > 0 {
+		return (&FDFetcher{}).Fetch(holding)
+	}
+
 	url, err := url.Parse(holding.Api)
 	if err != nil {
 		fmt.Println("Error parsing url", err)
