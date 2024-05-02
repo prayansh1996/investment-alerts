@@ -6,22 +6,15 @@ import (
 	"net/url"
 
 	"github.com/prayansh1996/investment-alerts/cons"
-	"github.com/prayansh1996/investment-alerts/holdings"
+	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
 type HoldingMetricFetcher interface {
-	Fetch(holdings.Holding) (metrics.HoldingMetric, error)
+	Fetch() (metrics.HoldingMetric, error)
 }
 
-func NewHoldingMetricFetcher() HoldingMetricFetcher {
-	return &HoldingFetchOrchestrator{}
-}
-
-type HoldingFetchOrchestrator struct {
-}
-
-func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
+func NewHoldingMetricFetcher(holdingFetcher fetcher.HoldingFetcher) HoldingMetricFetcher {
 	if holding.StaticPricePerUnit > 0 {
 		return (&FixedDepositHoldingMetricFetcher{}).Fetch(holding)
 	}

@@ -12,11 +12,13 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
+	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
 type ZerodhaKiteHoldingMetricFetcher struct {
-	cache *cache.Cache
+	cache          *cache.Cache
+	holdingFetcher fetcher.HoldingFetcher
 }
 
 func NewZerodhaKiteFetcher() HoldingMetricFetcher {
@@ -25,7 +27,8 @@ func NewZerodhaKiteFetcher() HoldingMetricFetcher {
 	}
 }
 
-func (f *ZerodhaKiteHoldingMetricFetcher) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
+func (f *ZerodhaKiteHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
+	holding := f.holdingFetcher.Fetch()
 	var err error
 
 	body, ok := f.cache.Get(holding.Api)

@@ -11,8 +11,20 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
+	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
+
+type MfApiHoldingApiFetcher struct {
+	cache          *cache.Cache
+	holdingFetcher fetcher.HoldingFetcher
+}
+
+func NewMfApiFetcher() HoldingMetricFetcher {
+	return &MfApiHoldingApiFetcher{
+		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+	}
+}
 
 // Define the structs to match the JSON response
 type MfApiResponse struct {
@@ -34,17 +46,8 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-type MfApiHoldingApiFetcher struct {
-	cache *cache.Cache
-}
-
-func NewMfApiFetcher() HoldingMetricFetcher {
-	return &MfApiHoldingApiFetcher{
-		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
-	}
-}
-
-func (f *MfApiHoldingApiFetcher) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
+func (f *MfApiHoldingApiFetcher) Fetch() (metrics.HoldingMetric, error) {
+	holding := f.holdingFetcher.Fetch()
 	var err error
 
 	body, ok := f.cache.Get(holding.Api)

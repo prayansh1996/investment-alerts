@@ -6,7 +6,7 @@ import (
 
 	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
-	fetcher "github.com/prayansh1996/investment-alerts/metrics/holdingmetricfetcher"
+	fetcher "github.com/prayansh1996/investment-alerts/metrics/holdingmetric"
 )
 
 type HoldingTracker struct {
