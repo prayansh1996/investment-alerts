@@ -13,6 +13,7 @@ import (
 type RsuHoldingFetcher struct{}
 
 func (rsu *RsuHoldingFetcher) Fetch() []holdings.Holding {
+	parsedHoldings := GetHoldings()
 	parsedHoldings.Equity.Rsu[0].UnitsHeld = parsedHoldings.Equity.Rsu[0].UnitsHeld + getAdditionalUnits()
 	return parsedHoldings.Equity.Rsu
 }
@@ -25,7 +26,7 @@ type Vesting struct {
 }
 
 func getAdditionalUnits() float64 {
-	yamlFile, err := os.ReadFile("google_vesting_schedule.yaml")
+	yamlFile, err := os.ReadFile("./config/google_vesting_schedule.yaml")
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s\n", err)
 	}
@@ -47,7 +48,7 @@ func getAdditionalUnits() float64 {
 			log.Fatalf("Error parsing date: %v", err)
 		}
 
-		if currentDate.After(date) {
+		if currentDate.After(date.AddDate(0, 0, 25)) {
 			totalAdditionalRSU += float64(entry.RSU)
 		}
 	}

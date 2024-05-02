@@ -3,7 +3,6 @@ package main
 import (
 	"net/http"
 
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 	"github.com/prayansh1996/investment-alerts/tracker"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -11,8 +10,7 @@ import (
 
 func main() {
 	metrics.InitializeMetrics()
-	fetcher.InitializeHoldings()
-	tracker.Start()
+	go tracker.Start()
 
 	// Expose the registered metrics via HTTP
 	http.Handle("/metrics", promhttp.Handler())

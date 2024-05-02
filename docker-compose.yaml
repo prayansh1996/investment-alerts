@@ -5,6 +5,8 @@ services:
       context: ./alerts
     ports:
       - "8082:8082"
+    volumes:
+      - ./alerts/config:/root/config  # Persistent volume for Prometheus data
     networks:
       - alerts_network
     depends_on:

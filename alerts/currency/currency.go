@@ -56,7 +56,7 @@ type CurrencyConversion struct {
 }
 
 func readCurrencyConversionApiUrl() string {
-	yamlFile, err := os.ReadFile("currency_conversion.yaml")
+	yamlFile, err := os.ReadFile("./config/currency_conversion.yaml")
 	if err != nil {
 		log.Fatalf("Error reading YAML file: %s\n", err)
 	}

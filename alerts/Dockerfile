@@ -25,7 +25,6 @@ WORKDIR /root/
 # Copy the Pre-built binary file from the previous stage
 COPY --from=app /app/alerts .
 COPY --from=prometheus /bin/promtool .
-COPY ./config .
 
 # Expose port 9090 to the outside world
 EXPOSE 9090

@@ -6,5 +6,5 @@ type MutualFundHoldingFetcher struct {
 }
 
 func (mf *MutualFundHoldingFetcher) Fetch() []holdings.Holding {
-	return parsedHoldings.Equity.MutualFunds
+	return GetHoldings().Equity.MutualFunds
 }

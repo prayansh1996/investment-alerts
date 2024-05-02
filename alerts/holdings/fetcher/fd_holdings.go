@@ -6,5 +6,5 @@ type FixedDepositHoldingFetcher struct {
 }
 
 func (fd *FixedDepositHoldingFetcher) Fetch() []holdings.Holding {
-	return parsedHoldings.Equity.FD
+	return GetHoldings().Equity.FD
 }
