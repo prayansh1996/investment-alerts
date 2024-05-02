@@ -23,7 +23,7 @@ type HoldingFetchOrchestrator struct {
 
 func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
 	if holding.StaticPricePerUnit > 0 {
-		return (&FDHoldingMetricFetcher{}).Fetch(holding)
+		return (&FixedDepositHoldingMetricFetcher{}).Fetch(holding)
 	}
 
 	url, err := url.Parse(holding.Api)
