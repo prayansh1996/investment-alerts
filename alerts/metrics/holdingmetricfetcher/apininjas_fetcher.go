@@ -19,15 +19,15 @@ type ApiNinjasResponse struct {
 	Updated  int64   `json:"updated"`
 }
 
-type ApiNinjasFetcher struct {
+type ApiNinjasHoldingMetricFetcher struct {
 }
 
-func (f *ApiNinjasFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+func (f *ApiNinjasHoldingMetricFetcher) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
 	resp, _ := f.getHttpResponse(holding.Api)
 	return f.convertResponseToMetric(holding, resp)
 }
 
-func (f *ApiNinjasFetcher) getHttpResponse(url string) ([]byte, error) {
+func (f *ApiNinjasHoldingMetricFetcher) getHttpResponse(url string) ([]byte, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("X-API-KEY", "cJWYYvQ0e9H/oqnLaBbMbQ==CvXKctKlnwIfjmCn")
@@ -42,17 +42,17 @@ func (f *ApiNinjasFetcher) getHttpResponse(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (f *ApiNinjasFetcher) convertResponseToMetric(rsu holdings.Holding, body []byte) (metrics.Metric, error) {
+func (f *ApiNinjasHoldingMetricFetcher) convertResponseToMetric(rsu holdings.Holding, body []byte) (metrics.HoldingMetric, error) {
 	var apiResponse ApiNinjasResponse
 	err := json.Unmarshal(body, &apiResponse)
 	if err != nil {
 		fmt.Printf("Error unmarshalling the response: %s\n", err)
-		return metrics.Metric{}, err
+		return metrics.HoldingMetric{}, err
 	}
 
 	nav := apiResponse.Price * currency.GetUsdToInrConversionRate()
 
-	return metrics.Metric{
+	return metrics.HoldingMetric{
 		Units:        rsu.UnitsHeld,
 		PricePerUnit: nav,
 		Name:         rsu.Name,

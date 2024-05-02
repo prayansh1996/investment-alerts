@@ -7,14 +7,14 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type Metric struct {
+type HoldingMetric struct {
 	Units        float64
 	PricePerUnit float64
 	Name         string
 	Category     string
 }
 
-var PublishChannel = make(chan Metric)
+var PublishChannel = make(chan HoldingMetric)
 
 // Define a gauge outside of the main function to make it accessible in the handler
 var unitsGauge = prometheus.NewGaugeVec(
@@ -49,7 +49,7 @@ func initializePublisher() {
 	}
 }
 
-func publish(metric Metric) {
+func publish(metric HoldingMetric) {
 	if metric.Name == "" {
 		fmt.Print("Empty metric received")
 		return

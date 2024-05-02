@@ -5,11 +5,11 @@ import (
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-type FDFetcher struct {
+type FDHoldingMetricFetcher struct {
 }
 
-func (f *FDFetcher) Fetch(fd holdings.Holding) (metrics.Metric, error) {
-	return metrics.Metric{
+func (f *FDHoldingMetricFetcher) Fetch(fd holdings.Holding) (metrics.HoldingMetric, error) {
+	return metrics.HoldingMetric{
 		Units:        fd.UnitsHeld,
 		PricePerUnit: fd.StaticPricePerUnit,
 		Name:         fd.Name,

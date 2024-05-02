@@ -15,17 +15,17 @@ import (
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-type ZerodhaKiteFetcher struct {
+type ZerodhaKiteHoldingMetricFetcher struct {
 	cache *cache.Cache
 }
 
-func NewZerodhaKiteFetcher() HoldingFetcher {
-	return &ZerodhaKiteFetcher{
+func NewZerodhaKiteFetcher() HoldingMetricFetcher {
+	return &ZerodhaKiteHoldingMetricFetcher{
 		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
 	}
 }
 
-func (f *ZerodhaKiteFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+func (f *ZerodhaKiteHoldingMetricFetcher) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
 	var err error
 
 	body, ok := f.cache.Get(holding.Api)
@@ -40,7 +40,7 @@ func (f *ZerodhaKiteFetcher) Fetch(holding holdings.Holding) (metrics.Metric, er
 	return f.convertResponseToMetric(holding, body.([]byte))
 }
 
-func (f *ZerodhaKiteFetcher) getHttpResponse(url string) ([]byte, error) {
+func (f *ZerodhaKiteHoldingMetricFetcher) getHttpResponse(url string) ([]byte, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -54,11 +54,11 @@ func (f *ZerodhaKiteFetcher) getHttpResponse(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (f *ZerodhaKiteFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.Metric, error) {
+func (f *ZerodhaKiteHoldingMetricFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.HoldingMetric, error) {
 	records, err := csv.NewReader(bytes.NewReader(body)).ReadAll()
 	if err != nil {
 		fmt.Printf("Unable to read records from csv: %s\n", err)
-		return metrics.Metric{}, err
+		return metrics.HoldingMetric{}, err
 	}
 
 	nav := 0.0
@@ -68,10 +68,10 @@ func (f *ZerodhaKiteFetcher) convertResponseToMetric(fund holdings.Holding, body
 		}
 	}
 	if nav == 0.0 {
-		return metrics.Metric{}, errors.New("nav price is 0 for " + fund.Name)
+		return metrics.HoldingMetric{}, errors.New("nav price is 0 for " + fund.Name)
 	}
 
-	return metrics.Metric{
+	return metrics.HoldingMetric{
 		Units:        fund.UnitsHeld,
 		PricePerUnit: nav,
 		Name:         fund.Name,

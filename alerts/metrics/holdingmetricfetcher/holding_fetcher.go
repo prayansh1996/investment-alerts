@@ -10,20 +10,20 @@ import (
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-type HoldingFetcher interface {
-	Fetch(holdings.Holding) (metrics.Metric, error)
+type HoldingMetricFetcher interface {
+	Fetch(holdings.Holding) (metrics.HoldingMetric, error)
 }
 
-func NewHoldingFetcher() HoldingFetcher {
+func NewHoldingMetricFetcher() HoldingMetricFetcher {
 	return &HoldingFetchOrchestrator{}
 }
 
 type HoldingFetchOrchestrator struct {
 }
 
-func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
 	if holding.StaticPricePerUnit > 0 {
-		return (&FDFetcher{}).Fetch(holding)
+		return (&FDHoldingMetricFetcher{}).Fetch(holding)
 	}
 
 	url, err := url.Parse(holding.Api)
@@ -33,7 +33,7 @@ func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.Metr
 
 	switch url.Hostname() {
 	case cons.API_NINJAS_HOSTNAME:
-		return (&ApiNinjasFetcher{}).Fetch(holding)
+		return (&ApiNinjasHoldingMetricFetcher{}).Fetch(holding)
 
 	case cons.MF_API_HOSTNAME:
 		return (NewMfApiFetcher()).Fetch(holding)
@@ -42,5 +42,5 @@ func (f *HoldingFetchOrchestrator) Fetch(holding holdings.Holding) (metrics.Metr
 		return (NewZerodhaKiteFetcher()).Fetch(holding)
 	}
 
-	return metrics.Metric{}, errors.New("Unknown url encountered: " + holding.Api)
+	return metrics.HoldingMetric{}, errors.New("Unknown url encountered: " + holding.Api)
 }

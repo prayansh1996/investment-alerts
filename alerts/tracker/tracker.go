@@ -6,7 +6,7 @@ import (
 )
 
 type Tracker interface {
-	Track() metrics.Metric
+	Track() metrics.HoldingMetric
 }
 
 func Start() {

@@ -34,17 +34,17 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-type MfApiFetcher struct {
+type MfApiHoldingApiFetcher struct {
 	cache *cache.Cache
 }
 
-func NewMfApiFetcher() HoldingFetcher {
-	return &MfApiFetcher{
+func NewMfApiFetcher() HoldingMetricFetcher {
+	return &MfApiHoldingApiFetcher{
 		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
 	}
 }
 
-func (f *MfApiFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
+func (f *MfApiHoldingApiFetcher) Fetch(holding holdings.Holding) (metrics.HoldingMetric, error) {
 	var err error
 
 	body, ok := f.cache.Get(holding.Api)
@@ -59,7 +59,7 @@ func (f *MfApiFetcher) Fetch(holding holdings.Holding) (metrics.Metric, error) {
 	return f.convertResponseToMetric(holding, body.([]byte))
 }
 
-func (f *MfApiFetcher) getHttpResponse(url string) ([]byte, error) {
+func (f *MfApiHoldingApiFetcher) getHttpResponse(url string) ([]byte, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -73,26 +73,26 @@ func (f *MfApiFetcher) getHttpResponse(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (f *MfApiFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.Metric, error) {
+func (f *MfApiHoldingApiFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.HoldingMetric, error) {
 	var apiResponse MfApiResponse
 	err := json.Unmarshal(body, &apiResponse)
 	if err != nil {
 		fmt.Printf("Error unmarshalling the response: %s\n", err)
-		return metrics.Metric{}, err
+		return metrics.HoldingMetric{}, err
 	}
 
 	// Update the gauge with the fetched NAV
 	if len(apiResponse.Data) == 0 {
 		fmt.Printf("No data returned in response: %v\n", apiResponse)
-		return metrics.Metric{}, err
+		return metrics.HoldingMetric{}, err
 	}
 
 	nav, _ := strconv.ParseFloat(apiResponse.Data[0].Nav, 64)
 	if nav == 0.0 {
-		return metrics.Metric{}, errors.New("nav price is 0 for " + fund.Name)
+		return metrics.HoldingMetric{}, errors.New("nav price is 0 for " + fund.Name)
 	}
 
-	return metrics.Metric{
+	return metrics.HoldingMetric{
 		Units:        fund.UnitsHeld,
 		PricePerUnit: nav,
 		Name:         fund.Name,
