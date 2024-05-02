@@ -1,4 +1,4 @@
-package fetcher
+package holdingmetric
 
 import (
 	"encoding/json"
@@ -8,19 +8,8 @@ import (
 
 	"github.com/prayansh1996/investment-alerts/currency"
 	"github.com/prayansh1996/investment-alerts/holdings"
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
-
-type ApiNinjasHoldingMetricFetcher struct {
-	holdingFetcher fetcher.HoldingFetcher
-}
-
-func (f *ApiNinjasHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
-	holding := f.holdingFetcher.Fetch()
-	resp, _ := f.getHttpResponse(holding.Api)
-	return f.convertResponseToMetric(holding, resp)
-}
 
 type ApiNinjasResponse struct {
 	Ticker   string  `json:"ticker"`
@@ -28,6 +17,15 @@ type ApiNinjasResponse struct {
 	Price    float64 `json:"price"`
 	Exchange string  `json:"exchange"`
 	Updated  int64   `json:"updated"`
+}
+
+type ApiNinjasHoldingMetricFetcher struct {
+	holding holdings.Holding
+}
+
+func (f *ApiNinjasHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
+	resp, _ := f.getHttpResponse(f.holding.Api)
+	return f.convertResponseToMetric(f.holding, resp)
 }
 
 func (f *ApiNinjasHoldingMetricFetcher) getHttpResponse(url string) ([]byte, error) {

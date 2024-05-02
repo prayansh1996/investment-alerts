@@ -1,4 +1,4 @@
-package fetcher
+package holdingmetric
 
 import (
 	"bytes"
@@ -12,35 +12,34 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
 type ZerodhaKiteHoldingMetricFetcher struct {
-	cache          *cache.Cache
-	holdingFetcher fetcher.HoldingFetcher
+	cache   *cache.Cache
+	holding holdings.Holding
 }
 
-func NewZerodhaKiteFetcher() HoldingMetricFetcher {
+func NewZerodhaKiteFetcher(holding holdings.Holding) HoldingMetricFetcher {
 	return &ZerodhaKiteHoldingMetricFetcher{
-		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+		cache:   cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+		holding: holding,
 	}
 }
 
 func (f *ZerodhaKiteHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
-	holding := f.holdingFetcher.Fetch()
 	var err error
 
-	body, ok := f.cache.Get(holding.Api)
+	body, ok := f.cache.Get(f.holding.Api)
 	if !ok {
-		body, err = f.getHttpResponse(holding.Api)
+		body, err = f.getHttpResponse(f.holding.Api)
 		if err != nil {
-			fmt.Printf("\nError reading response body for %s", holding.Api)
+			fmt.Printf("\nError reading response body for %s", f.holding.Api)
 		}
-		f.cache.Set(holding.Api, body, cons.HOLDING_API_CACHE_DURATION)
+		f.cache.Set(f.holding.Api, body, cons.HOLDING_API_CACHE_DURATION)
 	}
 
-	return f.convertResponseToMetric(holding, body.([]byte))
+	return f.convertResponseToMetric(f.holding, body.([]byte))
 }
 
 func (f *ZerodhaKiteHoldingMetricFetcher) getHttpResponse(url string) ([]byte, error) {

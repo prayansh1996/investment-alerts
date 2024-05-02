@@ -4,42 +4,34 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
+	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
-	fetcher "github.com/prayansh1996/investment-alerts/metrics/holdingmetric"
+	"github.com/prayansh1996/investment-alerts/metrics/holdingmetric"
 )
 
-type HoldingTracker struct {
-	fetcher fetcher.HoldingMetricFetcher
-}
+func Start() {
+	ticker := time.NewTicker(cons.HOLDING_NAV_REFRESH_TIME)
+	defer ticker.Stop()
 
-func NewHoldingTracker() HoldingTracker {
-	tracker := HoldingTracker{}
-	tracker.fetcher = fetcher.NewHoldingMetricFetcher()
-	return tracker
-}
+	// Hack to make the first tick immediate
+	for t := time.Now(); true; t = <-ticker.C {
+		holdingsList := []holdings.Holding{}
+		holdingsList = append(holdingsList, (&fetcher.FixedDepositHoldingFetcher{}).Fetch()...)
+		holdingsList = append(holdingsList, (&fetcher.MutualFundHoldingFetcher{}).Fetch()...)
+		holdingsList = append(holdingsList, (&fetcher.RsuHoldingFetcher{}).Fetch()...)
 
-func (tracker *HoldingTracker) getHoldingTracker(holding holdings.Holding) func(chan<- metrics.HoldingMetric) {
-	duration, err := time.ParseDuration(holding.RefreshTime)
-	if err != nil {
-		fmt.Printf("Cannot parse duration")
-	}
-
-	return func(publish chan<- metrics.HoldingMetric) {
-		ticker := time.NewTicker(duration)
-		defer ticker.Stop()
-
-		// Hack to make the first tick immediate
-		for t := time.Now(); true; t = <-ticker.C {
+		for _, holding := range holdingsList {
 			fmt.Printf("\nFetching %s %s at %s", holding.Name, holding.Category, t)
 
-			holdingMetrics, err := tracker.fetcher.Fetch(holding)
+			holdingMetric, err := holdingmetric.NewHoldingMetricFetcher(holding).Fetch()
 			if err != nil {
 				fmt.Println(err)
 				continue
 			}
 
-			publish <- holdingMetrics
+			metrics.PublishChannel <- holdingMetric
 		}
 	}
 }

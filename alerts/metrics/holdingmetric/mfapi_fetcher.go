@@ -1,4 +1,4 @@
-package fetcher
+package holdingmetric
 
 import (
 	"encoding/json"
@@ -11,19 +11,34 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/prayansh1996/investment-alerts/cons"
 	"github.com/prayansh1996/investment-alerts/holdings"
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
-type MfApiHoldingApiFetcher struct {
-	cache          *cache.Cache
-	holdingFetcher fetcher.HoldingFetcher
+type MfApiHoldingMetricFetcher struct {
+	cache   *cache.Cache
+	holding holdings.Holding
 }
 
-func NewMfApiFetcher() HoldingMetricFetcher {
-	return &MfApiHoldingApiFetcher{
-		cache: cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+func NewMfApiFetcher(holding holdings.Holding) HoldingMetricFetcher {
+	return &MfApiHoldingMetricFetcher{
+		cache:   cache.New(cons.HOLDING_API_CACHE_DURATION, 2*cons.HOLDING_API_CACHE_DURATION),
+		holding: holding,
 	}
+}
+
+func (f *MfApiHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
+	var err error
+
+	body, ok := f.cache.Get(f.holding.Api)
+	if !ok {
+		body, err = f.getHttpResponse(f.holding.Api)
+		if err != nil {
+			fmt.Printf("\nError reading response body for %s", f.holding.Api)
+		}
+		f.cache.Set(f.holding.Api, body, cons.HOLDING_API_CACHE_DURATION)
+	}
+
+	return f.convertResponseToMetric(f.holding, body.([]byte))
 }
 
 // Define the structs to match the JSON response
@@ -46,23 +61,7 @@ type NavData struct {
 	Nav  string `json:"nav"`
 }
 
-func (f *MfApiHoldingApiFetcher) Fetch() (metrics.HoldingMetric, error) {
-	holding := f.holdingFetcher.Fetch()
-	var err error
-
-	body, ok := f.cache.Get(holding.Api)
-	if !ok {
-		body, err = f.getHttpResponse(holding.Api)
-		if err != nil {
-			fmt.Printf("\nError reading response body for %s", holding.Api)
-		}
-		f.cache.Set(holding.Api, body, cons.HOLDING_API_CACHE_DURATION)
-	}
-
-	return f.convertResponseToMetric(holding, body.([]byte))
-}
-
-func (f *MfApiHoldingApiFetcher) getHttpResponse(url string) ([]byte, error) {
+func (f *MfApiHoldingMetricFetcher) getHttpResponse(url string) ([]byte, error) {
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 
@@ -76,7 +75,7 @@ func (f *MfApiHoldingApiFetcher) getHttpResponse(url string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (f *MfApiHoldingApiFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.HoldingMetric, error) {
+func (f *MfApiHoldingMetricFetcher) convertResponseToMetric(fund holdings.Holding, body []byte) (metrics.HoldingMetric, error) {
 	var apiResponse MfApiResponse
 	err := json.Unmarshal(body, &apiResponse)
 	if err != nil {

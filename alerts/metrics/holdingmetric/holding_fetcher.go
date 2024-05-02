@@ -1,12 +1,11 @@
-package fetcher
+package holdingmetric
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
 	"github.com/prayansh1996/investment-alerts/cons"
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
+	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
@@ -14,9 +13,9 @@ type HoldingMetricFetcher interface {
 	Fetch() (metrics.HoldingMetric, error)
 }
 
-func NewHoldingMetricFetcher(holdingFetcher fetcher.HoldingFetcher) HoldingMetricFetcher {
+func NewHoldingMetricFetcher(holding holdings.Holding) HoldingMetricFetcher {
 	if holding.StaticPricePerUnit > 0 {
-		return (&FixedDepositHoldingMetricFetcher{}).Fetch(holding)
+		return &FixedDepositHoldingMetricFetcher{holding}
 	}
 
 	url, err := url.Parse(holding.Api)
@@ -26,14 +25,14 @@ func NewHoldingMetricFetcher(holdingFetcher fetcher.HoldingFetcher) HoldingMetri
 
 	switch url.Hostname() {
 	case cons.API_NINJAS_HOSTNAME:
-		return (&ApiNinjasHoldingMetricFetcher{}).Fetch(holding)
+		return &ApiNinjasHoldingMetricFetcher{holding}
 
 	case cons.MF_API_HOSTNAME:
-		return (NewMfApiFetcher()).Fetch(holding)
+		return NewMfApiFetcher(holding)
 
 	case cons.ZERODHA_KITE_HOSTNAME:
-		return (NewZerodhaKiteFetcher()).Fetch(holding)
+		return NewZerodhaKiteFetcher(holding)
 	}
 
-	return metrics.HoldingMetric{}, errors.New("Unknown url encountered: " + holding.Api)
+	panic("Invalid Holding " + holding.Name)
 }

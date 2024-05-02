@@ -16,4 +16,5 @@ const (
 
 const (
 	HOLDING_API_CACHE_DURATION = 5 * time.Minute
+	HOLDING_NAV_REFRESH_TIME   = time.Hour
 )

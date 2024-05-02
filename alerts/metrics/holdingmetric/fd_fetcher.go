@@ -1,20 +1,19 @@
-package fetcher
+package holdingmetric
 
 import (
-	"github.com/prayansh1996/investment-alerts/holdings/fetcher"
+	"github.com/prayansh1996/investment-alerts/holdings"
 	"github.com/prayansh1996/investment-alerts/metrics"
 )
 
 type FixedDepositHoldingMetricFetcher struct {
-	holdingFetcher fetcher.HoldingFetcher
+	holding holdings.Holding
 }
 
 func (f *FixedDepositHoldingMetricFetcher) Fetch() (metrics.HoldingMetric, error) {
-	holding := f.holdingFetcher.Fetch()
 	return metrics.HoldingMetric{
-		Units:        holding.UnitsHeld,
-		PricePerUnit: holding.StaticPricePerUnit,
-		Name:         holding.Name,
-		Category:     holding.Category,
+		Units:        f.holding.UnitsHeld,
+		PricePerUnit: f.holding.StaticPricePerUnit,
+		Name:         f.holding.Name,
+		Category:     f.holding.Category,
 	}, nil
 }
