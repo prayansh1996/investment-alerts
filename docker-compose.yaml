@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   alerts_go:
     build:
@@ -7,23 +6,6 @@ services:
       - "8082:8082"
     volumes:
       - ./alerts/config:/root/config  # Persistent volume for Prometheus data
-    networks:
-      - alerts_network
-    depends_on:
-      - prometheus
-
-  prometheus:
-    build:
-      context: ./prometheus
-    ports:
-      - "9090:9090"  # Expose Prometheus on port 9090 on the host
-    command:
-      - --storage.tsdb.path=/prometheus
-      - --config.file=/etc/prometheus/prometheus.yml
-      - --web.enable-admin-api
-      - --web.enable-lifecycle
-    volumes:
-      - ./prometheus/data:/prometheus  # Persistent volume for Prometheus data
     networks:
       - alerts_network
 
@@ -38,10 +20,12 @@ services:
     user: root
     env_file:
       - ./grafana/config/config.env
-    depends_on:
-      - prometheus
     networks:
       - alerts_network
+      - external_mysql_network
 
 networks:
   alerts_network:
+  external_mysql_network:
+    name: local_mysql_network
+    external: true
